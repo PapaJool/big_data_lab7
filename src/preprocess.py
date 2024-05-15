@@ -11,7 +11,6 @@ class Preprocess:
         vector_assembler = VectorAssembler(
             inputCols=dataset.columns,
             outputCol='features',
-            handleInvalid='skip'
         )
 
         assembled_data = vector_assembler.transform(dataset)
