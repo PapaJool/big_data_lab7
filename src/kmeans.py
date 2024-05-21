@@ -8,10 +8,21 @@ from pyspark.ml.evaluation import ClusteringEvaluator
 from pyspark.sql import SparkSession
 from src.preprocess import Preprocess
 
-import src.db
+from db import Database
+from datamart import DataMart
+
+from logger import Logger
+
+SHOW_LOG = True
 
 
 class KMeansModel:
+    def __init__(self, datamart):
+        self.datamart = datamart
+        logger = Logger(SHOW_LOG)
+        self.log = logger.get_logger(__name__)
+        self.log.info('KmeansEvaluator initialized.')
+
     def clustering(self, final_data):
         silhouette_score = []
 
@@ -27,6 +38,7 @@ class KMeansModel:
             score = evaluator.evaluate(predictions)
             silhouette_score.append(score)
             print('Silhouette Score for k =', i, 'is', score)
+        self.log.info('Kmeans trained successfully.')
 
 
 def main():
@@ -40,10 +52,11 @@ def main():
         .master(config['spark']['deploy_mode']) \
         .config("spark.driver.memory", config['spark']['driver_memory']) \
         .config("spark.executor.memory", config['spark']['executor_memory']) \
+        .config("spark.jars", f"{config['spark']['mysql_connector']},/Users/papajool/PycharmProjects/big_data_lab5/jars/datamart.jar") \
         .config("spark.driver.extraClassPath", config['spark']['mysql_connector']) \
         .getOrCreate()
 
-    db = src.db.Database(spark)
+    db = Database(spark)
     path_to_data = os.path.join(main_path, config['data']['openfood'])
     df = pd.read_csv(path_to_data)
     df.columns = df.columns.str.replace('-', '_')
@@ -63,15 +76,21 @@ def main():
 
     # Создаем таблицу с указанными столбцами
     db.create_table("OpenFoodFacts", columns)
-
+    #
     db.insert_data('OpenFoodFacts', df)
+    #
+    # preprocessor = Preprocess()
+    #
+    # assembled_data = preprocessor.load_dataset(db)
+    # final_data = preprocessor.scale_data(assembled_data)
+    # kmeans = KMeansModel()
+    # kmeans.clustering(final_data)
 
-    preprocessor = Preprocess()
+    datamart = DataMart(spark=spark)
 
-    assembled_data = preprocessor.load_dataset(db)
-    final_data = preprocessor.scale_data(assembled_data)
-    kmeans = KMeansModel()
-    kmeans.clustering(final_data)
+    assembled_data = datamart.read_dataset()
+    kmeans = KMeansModel(datamart)
+    kmeans.clustering(assembled_data)
 
     spark.stop()
 

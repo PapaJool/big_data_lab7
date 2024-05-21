@@ -3,10 +3,14 @@ import mysql.connector
 import pandas as pd
 from typing import Dict
 import numpy as np
+from logger import Logger
 
+SHOW_LOG = True
 
 class Database():
-    def __init__(self, spark, host="0.0.0.0", port=55000, database="lab6_bd"):
+    def __init__(self, spark, host="0.0.0.0", port=55001, database="lab6_bd"):
+        logger = Logger(SHOW_LOG)
+        self.log = logger.get_logger(__name__)
         self.username = "root"
         self.password = "0000"
         self.spark = spark
@@ -17,8 +21,10 @@ class Database():
                                     host=host,
                                     port=port)
         self.jdbcUrl = f"jdbc:mysql://{host}:{port}/{database}"
+        self.log.info("Initializing database")
 
     def read_table(self, tablename: str):
+        self.log.info(f"Reading table {tablename}")
         return self.spark.read \
             .format("jdbc") \
             .option("url", self.jdbcUrl) \
@@ -28,7 +34,9 @@ class Database():
             .option("inferSchema", "true") \
             .load()
 
+
     def insert_df(self, df, tablename):
+        self.log.info(f"Inserting dataframe {tablename}")
         df.write \
             .format("jdbc") \
             .option("url", self.jdbcUrl) \
@@ -43,12 +51,12 @@ class Database():
             with self.client.cursor() as cursor:
                 cursor.execute(query)
             self.client.commit()
-            print("Query executed successfully!")
+            self.log.info("Query executed successfully!")
         except Exception as e:
-            print(f"Error executing query: {e}")
+            self.log.warn(f"Error executing query: {e}")
 
     def create_table(self, table_name: str, columns: Dict):
-        print(f"Creating table {table_name}")
+        self.log.info(f"Creating table {table_name}")
         cols = ", ".join([f"`{k}` {v}" for k, v in columns.items()])
         query = f"""
             CREATE TABLE IF NOT EXISTS {table_name} 
@@ -70,7 +78,7 @@ class Database():
                 # Вставляем данные в таблицу
                 cursor.executemany(query, data)
             self.client.commit()
-            print("Data inserted successfully!")
+            self.log.info(f"Data inserted successfully! {table_name}")
         except Exception as e:
-            print(f"Error inserting data: {e}")
+            self.log.warn(f"Error inserting data: {e}")
 
