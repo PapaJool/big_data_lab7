@@ -43,7 +43,7 @@ class Database():
             .option("user", self.username) \
             .option("password", self.password) \
             .option("dbtable", tablename) \
-            .mode("append") \
+            .mode("overwrite") \
             .save()
 
     def execute_query(self, query):

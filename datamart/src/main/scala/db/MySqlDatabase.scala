@@ -29,7 +29,7 @@ class MySqlDatabase(spark: SparkSession) {
       .option("user", "root")
       .option("password", "0000")
       .option("dbtable", tablename)
-      .mode("append")
+      .mode("overwrite")
       .save()
     logger.info(s"Inserted ${df.count()} records into table $tablename")
   }

@@ -6,7 +6,6 @@ import pandas as pd
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
 from pyspark.sql import SparkSession
-from src.preprocess import Preprocess
 
 from db import Database
 from datamart import DataMart
@@ -25,19 +24,19 @@ class KMeansModel:
 
     def clustering(self, final_data):
         silhouette_score = []
-
         evaluator = ClusteringEvaluator(predictionCol='prediction',
                                         featuresCol='scaled_features',
                                         metricName='silhouette',
                                         distanceMeasure='squaredEuclidean')
 
-        for i in range(2, 10):
-            kmeans = KMeans(featuresCol='scaled_features', k=i)
-            model = kmeans.fit(final_data)
-            predictions = model.transform(final_data)
-            score = evaluator.evaluate(predictions)
-            silhouette_score.append(score)
-            print('Silhouette Score for k =', i, 'is', score)
+        kmeans = KMeans(featuresCol='scaled_features', k=2)
+        model = kmeans.fit(final_data)
+        predictions = model.transform(final_data)
+        score = evaluator.evaluate(predictions)
+        silhouette_score.append(score)
+        print('Silhouette Score for k =', 2, 'is', score)
+
+        self.datamart.write_predictions(predictions.select("prediction"))
         self.log.info('Kmeans trained successfully.')
 
 
@@ -52,7 +51,8 @@ def main():
         .master(config['spark']['deploy_mode']) \
         .config("spark.driver.memory", config['spark']['driver_memory']) \
         .config("spark.executor.memory", config['spark']['executor_memory']) \
-        .config("spark.jars", f"{config['spark']['mysql_connector']},/Users/papajool/PycharmProjects/big_data_lab5/jars/datamart.jar") \
+        .config("spark.jars",
+                f"{config['spark']['mysql_connector']},/Users/papajool/PycharmProjects/big_data_lab5/jars/datamart.jar") \
         .config("spark.driver.extraClassPath", config['spark']['mysql_connector']) \
         .getOrCreate()
 
@@ -77,21 +77,14 @@ def main():
     # Создаем таблицу с указанными столбцами
     db.create_table("OpenFoodFacts", columns)
     #
-    db.insert_data('OpenFoodFacts', df)
-    #
-    # preprocessor = Preprocess()
-    #
-    # assembled_data = preprocessor.load_dataset(db)
-    # final_data = preprocessor.scale_data(assembled_data)
-    # kmeans = KMeansModel()
-    # kmeans.clustering(final_data)
+    db.insert_data('lab6_bd.OpenFoodFacts', df)
 
     datamart = DataMart(spark=spark)
 
     assembled_data = datamart.read_dataset()
     kmeans = KMeansModel(datamart)
     kmeans.clustering(assembled_data)
-
+    assembled_data.collect()
     spark.stop()
 
 
