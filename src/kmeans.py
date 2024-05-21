@@ -51,9 +51,8 @@ def main():
         .master(config['spark']['deploy_mode']) \
         .config("spark.driver.memory", config['spark']['driver_memory']) \
         .config("spark.executor.memory", config['spark']['executor_memory']) \
-        .config("spark.jars",
-                f"{config['spark']['mysql_connector']},/Users/papajool/PycharmProjects/big_data_lab5/jars/datamart.jar") \
         .config("spark.driver.extraClassPath", config['spark']['mysql_connector']) \
+        .config("spark.jars", config['spark']['datamart']) \
         .getOrCreate()
 
     db = Database(spark)
@@ -76,7 +75,7 @@ def main():
 
     # Создаем таблицу с указанными столбцами
     db.create_table("OpenFoodFacts", columns)
-    #
+
     db.insert_data('lab6_bd.OpenFoodFacts', df)
 
     datamart = DataMart(spark=spark)
