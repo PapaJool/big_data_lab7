@@ -12,9 +12,9 @@ val sparkVersion = "3.5.1"
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion,
   "org.apache.spark" %% "spark-sql" % sparkVersion,
-  "org.apache.spark" %% "spark-mllib" % sparkVersion
+  "org.apache.spark" %% "spark-mllib" % sparkVersion,
+  "com.typesafe" % "config" % "1.4.1",
+  "org.apache.logging.log4j" % "log4j-core" % "2.17.1",
+  "org.apache.logging.log4j" % "log4j-api" % "2.17.1",
+  "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.17.1"
 )
-
-libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.17.1"
-libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % "2.17.1"
-libraryDependencies += "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.17.1"

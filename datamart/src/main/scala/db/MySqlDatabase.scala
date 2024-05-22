@@ -2,18 +2,20 @@ package db
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import logging.MyLoggerFactory
+import config.ConfigLoader._
 
 class MySqlDatabase(spark: SparkSession) {
   private val logger = MyLoggerFactory.getLogger(getClass)
-  private val JDBC_URL = s"jdbc:mysql://127.0.0.1:55001/lab6_bd"
+
+  private val JDBC_URL = s"jdbc:mysql://${mysql.host}:${mysql.port}/${mysql.database}"
 
   def readTable(tablename: String): DataFrame = {
     logger.info(s"Reading table $tablename")
     val df = spark.read
       .format("jdbc")
       .option("url", JDBC_URL)
-      .option("user", "root")
-      .option("password", "0000")
+      .option("user", mysql.username)
+      .option("password", mysql.password)
       .option("dbtable", tablename)
       .option("inferSchema", "true")
       .load()
@@ -26,8 +28,8 @@ class MySqlDatabase(spark: SparkSession) {
     df.write
       .format("jdbc")
       .option("url", JDBC_URL)
-      .option("user", "root")
-      .option("password", "0000")
+      .option("user", mysql.username)
+      .option("password", mysql.password)
       .option("dbtable", tablename)
       .mode("overwrite")
       .save()

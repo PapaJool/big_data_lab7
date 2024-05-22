@@ -52,7 +52,7 @@ def main():
         .config("spark.driver.memory", config['spark']['driver_memory']) \
         .config("spark.executor.memory", config['spark']['executor_memory']) \
         .config("spark.driver.extraClassPath", config['spark']['mysql_connector']) \
-        .config("spark.jars", config['spark']['datamart']) \
+        .config("spark.jars", f"{config['spark']['datamart']}, /Users/papajool/PycharmProjects/big_data_lab5/jars/config-1.4.1.jar",) \
         .getOrCreate()
 
     db = Database(spark)
@@ -74,13 +74,13 @@ def main():
     }
 
     # Создаем таблицу с указанными столбцами
-    db.create_table("OpenFoodFacts", columns)
+    db.create_table(config['mysql']['tablename'], columns)
 
-    db.insert_data('lab6_bd.OpenFoodFacts', df)
+    db.insert_data(config['mysql']['tablename'], df)
 
     datamart = DataMart(spark=spark)
 
-    assembled_data = datamart.read_dataset()
+    assembled_data = datamart.read_dataset("OpenFoodFacts")
     kmeans = KMeansModel(datamart)
     kmeans.clustering(assembled_data)
     assembled_data.collect()

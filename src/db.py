@@ -1,26 +1,40 @@
 import os
 import mysql.connector
-import pandas as pd
 from typing import Dict
-import numpy as np
+
 from logger import Logger
+
+import path
+import configparser
 
 SHOW_LOG = True
 
+
+
 class Database():
-    def __init__(self, spark, host="0.0.0.0", port=55001, database="lab6_bd"):
+    def __init__(self, spark):
+        main_path = path.Path(__file__).absolute()
+        main_path = main_path.parent.parent
+        config = configparser.ConfigParser()
+        config.read(os.path.join(main_path, 'config.ini'))
         logger = Logger(SHOW_LOG)
+
         self.log = logger.get_logger(__name__)
-        self.username = "root"
-        self.password = "0000"
+
+        self.host = config['mysql']['host']
+        self.port = config['mysql']['port']
+        self.database = config['mysql']['database']
+        self.username = config['mysql']['username']
+        self.password = config['mysql']['password']
         self.spark = spark
         self.client = mysql.connector.connect(
                                     user=self.username,
                                     password=self.password,
-                                    database=database,
-                                    host=host,
-                                    port=port)
-        self.jdbcUrl = f"jdbc:mysql://{host}:{port}/{database}"
+                                    database=self.database,
+                                    host=self.host,
+                                    port=self.port)
+
+        self.jdbcUrl = f"jdbc:mysql://{self.host}:{self.port}/{self.database}"
         self.log.info("Initializing database")
 
     def read_table(self, tablename: str):
