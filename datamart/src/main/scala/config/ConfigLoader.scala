@@ -14,6 +14,7 @@ object ConfigLoader {
     val executorCore: Int = config.getInt("spark.executor_cores")
     val mysqlConnector: String = config.getString("spark.mysql_connector")
     val logger: String = config.getString("spark.logger")
+    val configS: String = config.getString("spark.config")
   }
 
   object mysql {

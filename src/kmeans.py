@@ -52,7 +52,7 @@ def main():
         .config("spark.driver.memory", config['spark']['driver_memory']) \
         .config("spark.executor.memory", config['spark']['executor_memory']) \
         .config("spark.driver.extraClassPath", config['spark']['mysql_connector']) \
-        .config("spark.jars", f"{config['spark']['datamart']}, /Users/papajool/PycharmProjects/big_data_lab5/jars/config-1.4.1.jar",) \
+        .config("spark.jars", f"{config['spark']['datamart']}, {config['spark']['config']}") \
         .getOrCreate()
 
     db = Database(spark)
@@ -78,7 +78,7 @@ def main():
 
     db.insert_data(config['mysql']['tablename'], df)
 
-    datamart = DataMart(spark=spark)
+    datamart = DataMart(spark)
 
     assembled_data = datamart.read_dataset("OpenFoodFacts")
     kmeans = KMeansModel(datamart)
