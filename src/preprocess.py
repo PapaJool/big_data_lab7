@@ -11,7 +11,7 @@ class Preprocess:
     log = logger.get_logger(__name__)
     def load_dataset(self, db: src.db.Database):
         dataset = db.read_table("OpenFoodFacts")
-
+        print(dataset.columns)
         vector_assembler = VectorAssembler(
             inputCols=dataset.columns,
             outputCol='features',

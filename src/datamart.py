@@ -21,4 +21,4 @@ class DataMart:
 
     def write_predictions(self, df: DataFrame):
         self.log.info("Data Mart write predictions")
-        self.datamart.writePredictions(df._jdf)
+        self.datamart.writePredictions(df.jdf)

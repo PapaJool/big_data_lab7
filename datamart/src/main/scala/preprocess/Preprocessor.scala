@@ -8,14 +8,18 @@ object Preprocessor {
   private val logger = MyLoggerFactory.getLogger(getClass)
 
   def assembleVector(df: DataFrame): DataFrame = {
+    val columnToRemove = "sodium_100g"
+    logger.info(s"Removing column $columnToRemove from DataFrame")
+    val filteredDf = df.drop(columnToRemove)
+
     logger.info("Assembling vector from DataFrame columns")
     val outputCol = "features"
-    val inputCols = df.columns
+    val inputCols = filteredDf.columns
 
     val vectorAssembler = new VectorAssembler()
       .setInputCols(inputCols)
       .setOutputCol(outputCol)
-    val assembledDf = vectorAssembler.transform(df)
+    val assembledDf = vectorAssembler.transform(filteredDf)
     logger.debug("Assembled vector schema: " + assembledDf.schema)
     assembledDf
   }
